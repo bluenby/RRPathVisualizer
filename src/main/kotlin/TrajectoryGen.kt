@@ -18,18 +18,45 @@ object TrajectoryGen {
 
     private val startPose = Pose2d(36.0, -63.0, 90.0.toRadians)
 
+    private var lastPose = startPose;
+
+    private var spikePose = startPose;
+
     fun createTrajectory(): ArrayList<Trajectory> {
+
+        val angle = -20.0
+
+
+        if (angle < -15.0) {
+            spikePose = Pose2d(-9.0, 18.0, 90.0.toRadians)
+        } else if (angle < 15.0) {
+            spikePose = Pose2d(0.0, 33.0, 0.0.toRadians)
+        } else {
+            spikePose = Pose2d(12.0, 33.0, 0.0.toRadians)
+        }
+
         val list = ArrayList<Trajectory>()
 
-        val builder1 = TrajectoryBuilder(startPose, startPose.heading, combinedConstraints)
+        val traj1 = TrajectoryBuilder(lastPose, lastPose.heading, combinedConstraints)
+            .splineTo(lastPose.vec() + spikePose.vec(), lastPose.heading + spikePose.heading)
+            .build()
 
-//        builder1.forward(40.0);
-//
-//        // Small Example Routine
-        builder1.lineTo(startPose.vec() + Vector2d(12.0, 33.0))
-//            .splineTo(Vector2d(15.0, 15.0), 90.0);
+        lastPose = traj1.end()
 
-        list.add(builder1.build())
+        val traj2 = TrajectoryBuilder(lastPose, true, combinedConstraints)
+            .splineTo(lastPose.vec() - spikePose.vec(), lastPose.heading-180.0.toRadians)
+            .build()
+
+        lastPose = traj2.end()
+
+//        val traj2 = TrajectoryBuilder(traj1.end(), traj1.end().heading, combinedConstraints)
+//            .splineTo(traj1.end().vec() + Vector2d(15.0, 15.0), traj1.end().heading - 90.0.toRadians)
+//            .build()
+//        val traj2 = TrajectoryBuilder(lastPose, lastPose.heading, combinedConstraints)
+//            .lineTo()
+
+        list.add(traj1)
+        list.add(traj2)
 
         return list
     }
